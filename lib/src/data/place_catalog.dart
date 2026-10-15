@@ -1,12 +1,25 @@
 import 'package:timezone/timezone.dart' as tz;
 
 import '../models/place.dart';
+import 'zone_countries.dart';
 
 /// Searchable cities and countries backed by the IANA time zone database.
 final class PlaceCatalog {
-  PlaceCatalog._(this._places);
+  PlaceCatalog._(this._places) {
+    for (final place in _places) {
+      final code = place.countryCode;
+      if (code != null) _codeById[place.id] = code;
+    }
+  }
 
   final List<Place> _places;
+  final Map<String, String> _codeById = {};
+
+  /// Flag country for a saved pin. The pin id wins, so Malaysia stays Malaysia
+  /// even though its clock uses the Singapore zone.
+  String? countryCodeFor(String id, String ianaId) {
+    return _codeById[id] ?? countryCodeForZone(ianaId);
+  }
 
   static PlaceCatalog build() {
     final countryByIana = <String, String>{};
@@ -39,6 +52,8 @@ final class PlaceCatalog {
           subtitle: country ?? _regionSubtitle(name),
           ianaId: name,
           keywords: _keywordsForCountry(country, label),
+          countryCode: (country == null ? null : countryCodeForName(country)) ??
+              countryCodeForZone(name),
         ),
       );
     }
@@ -139,6 +154,7 @@ final class _Seed {
       keywords: keywords,
       starterOrder: starterOrder,
       countryAlias: countryAlias,
+      countryCode: countryCodeForName(country),
     );
   }
 }

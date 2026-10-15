@@ -93,6 +93,17 @@ class _TimeZoneAppState extends State<TimeZoneApp> {
     _commit(_zones.where((item) => item.id != zone.id).toList());
   }
 
+  void _reorder(int oldIndex, int newIndex) {
+    if (oldIndex < 0 || oldIndex >= _zones.length) return;
+    if (newIndex > oldIndex) newIndex -= 1;
+    newIndex = newIndex.clamp(0, _zones.length - 1);
+    if (newIndex == oldIndex) return;
+    final next = [..._zones];
+    final zone = next.removeAt(oldIndex);
+    next.insert(newIndex, zone);
+    _commit(next);
+  }
+
   void _restore(SavedZone zone, int index) {
     if (_zones.any((item) => item.id == zone.id)) return;
     final next = [..._zones];
@@ -114,6 +125,7 @@ class _TimeZoneAppState extends State<TimeZoneApp> {
     return MaterialApp(
       title: 'TimeZoneMobile',
       debugShowCheckedModeBanner: false,
+      scrollBehavior: const AppScrollBehavior(),
       theme: buildAppTheme(),
       home: HomePage(
         now: _now,
@@ -124,6 +136,7 @@ class _TimeZoneAppState extends State<TimeZoneApp> {
         onColorChanged: _recolor,
         onRemove: _remove,
         onRestore: _restore,
+        onReorder: _reorder,
       ),
     );
   }

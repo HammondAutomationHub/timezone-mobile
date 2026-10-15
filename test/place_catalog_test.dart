@@ -27,6 +27,13 @@ void main() {
     ]);
     // tzdata 2026e keeps Kuala Lumpur's clock on the Singapore zone.
     expect(catalog.starters[1].ianaId, 'Asia/Singapore');
+    expect(catalog.starters.map((place) => place.countryCode).toList(), [
+      'US',
+      'MY',
+      'JP',
+      'ID',
+      'SG',
+    ]);
   });
 
   test('search prefers the label that matches the query', () {

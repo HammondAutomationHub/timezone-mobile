@@ -1,9 +1,12 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../data/place_catalog.dart';
 import '../logic/clock.dart';
 import '../models/place.dart';
 import '../theme/app_theme.dart';
+import '../widgets/zone_flag.dart';
 
 class AddPlacePage extends StatefulWidget {
   const AddPlacePage({
@@ -69,14 +72,13 @@ class _AddPlacePageState extends State<AddPlacePage> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Add a place')),
-      body: Align(
-        alignment: Alignment.topCenter,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 680),
-          child: Column(
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final side = math.max(0.0, (constraints.maxWidth - 680) / 2);
+          return Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                padding: EdgeInsets.fromLTRB(side + 20, 4, side + 20, 8),
                 child: TextField(
                   controller: _controller,
                   autofocus: true,
@@ -96,6 +98,7 @@ class _AddPlacePageState extends State<AddPlacePage> {
                         now: widget.now,
                         savedIds: _savedIds,
                         onAdd: _add,
+                        sideInset: side,
                       )
                     : results.isEmpty
                     ? const Center(
@@ -109,11 +112,12 @@ class _AddPlacePageState extends State<AddPlacePage> {
                         now: widget.now,
                         savedIds: _savedIds,
                         onAdd: _add,
+                        sideInset: side,
                       ),
               ),
             ],
-          ),
-        ),
+          );
+        },
       ),
     );
   }
@@ -125,16 +129,19 @@ class _BrowseList extends StatelessWidget {
     required this.now,
     required this.savedIds,
     required this.onAdd,
+    required this.sideInset,
   });
 
   final PlaceCatalog catalog;
   final DateTime now;
   final Set<String> savedIds;
   final ValueChanged<Place> onAdd;
+  final double sideInset;
 
   @override
   Widget build(BuildContext context) {
     return ListView(
+      padding: EdgeInsets.symmetric(horizontal: sideInset),
       children: [
         const _SectionLabel('Suggested'),
         _PlaceList(
@@ -187,6 +194,7 @@ class _PlaceList extends StatelessWidget {
     required this.savedIds,
     required this.onAdd,
     this.shrinkWrap = false,
+    this.sideInset = 0,
   });
 
   final List<Place> places;
@@ -194,11 +202,13 @@ class _PlaceList extends StatelessWidget {
   final Set<String> savedIds;
   final ValueChanged<Place> onAdd;
   final bool shrinkWrap;
+  final double sideInset;
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
       shrinkWrap: shrinkWrap,
+      padding: EdgeInsets.symmetric(horizontal: sideInset),
       physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
       itemCount: places.length,
       itemBuilder: (context, index) {
@@ -207,6 +217,9 @@ class _PlaceList extends StatelessWidget {
         final clock = ZoneClock.resolve(place.ianaId, now);
         return ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+          leading: place.countryCode == null
+              ? null
+              : ZoneFlag(countryCode: place.countryCode),
           title: Text(
             place.label,
             style: TextStyle(
@@ -215,8 +228,8 @@ class _PlaceList extends StatelessWidget {
             ),
           ),
           subtitle: Text(
-            '${place.subtitle} · ${formatClock(clock.local)} · ${formatRelativeOffset(clock.relative)}',
-            maxLines: 1,
+            '${place.subtitle} · ${formatClock(clock.local, includeSeconds: false)} · ${formatRelativeOffset(clock.relative)}',
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(color: AppColors.muted),
           ),

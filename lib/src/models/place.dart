@@ -8,6 +8,7 @@ final class Place {
     this.keywords = const [],
     this.starterOrder,
     this.countryAlias = false,
+    this.countryCode,
   }) : id = id ?? ianaId;
 
   /// Stable pin id. Usually the IANA id. A few places keep a historical id
@@ -25,6 +26,9 @@ final class Place {
 
   /// True when [label] is a country or region name rather than the city.
   final bool countryAlias;
+
+  /// ISO 3166-1 alpha-2 code for the flag, when the place has one country.
+  final String? countryCode;
 
   bool get isStarter => starterOrder != null;
 }

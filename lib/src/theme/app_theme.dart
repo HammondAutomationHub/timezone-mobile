@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 abstract final class AppColors {
@@ -12,6 +13,25 @@ abstract final class AppColors {
   static const closed = Color(0xFFE0A36A);
 }
 
+/// Type sizes for the width of the window. Desktop keeps the large clocks.
+/// A phone steps them down so the time, date, and place names stay on screen.
+final class AppMetrics {
+  AppMetrics(double width) : _t = ((width - 320) / 320).clamp(0.0, 1.0);
+
+  final double _t;
+
+  double lerp(double compact, double regular) =>
+      compact + (regular - compact) * _t;
+
+  double get localClock => lerp(26, 40);
+  double get zoneClock => lerp(22, 34);
+  double get placeName => lerp(16, 18);
+  double get headline => lerp(22, 28);
+  double get body => lerp(14, 15);
+  double get meta => lerp(12, 14);
+  double get pagePadding => lerp(16, 20);
+}
+
 TextStyle zoneTextStyle({
   required Color color,
   required double size,
@@ -24,6 +44,20 @@ TextStyle zoneTextStyle({
     fontWeight: weight,
     fontFeatures: const [FontFeature.tabularFigures()],
   );
+}
+
+/// Lets a mouse or trackpad drag the lists, and keeps wheel scrolling active
+/// across the full page rather than only over a card.
+final class AppScrollBehavior extends MaterialScrollBehavior {
+  const AppScrollBehavior();
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => const {
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.stylus,
+    PointerDeviceKind.trackpad,
+  };
 }
 
 ThemeData buildAppTheme() {

@@ -3,17 +3,10 @@ import 'package:flutter/material.dart';
 import '../models/saved_zone.dart';
 import '../theme/app_theme.dart';
 
-const _swatches = <(int, String)>[
-  (SavedZone.defaultColorValue, 'Neutral gray'),
-  (0xFFE8EEF3, 'White'),
-  (0xFF9BB6E0, 'Blue'),
-  (0xFF8FCBB0, 'Green'),
-  (0xFFE0A36A, 'Amber'),
-  (0xFFE09A9A, 'Rose'),
-  (0xFFD7B0E0, 'Lilac'),
-  (0xFF8FD0D0, 'Teal'),
-  (0xFFF0D58C, 'Sand'),
-  (0xFFC8B8A8, 'Stone'),
+const _primaries = <(int, String)>[
+  (0xFFFF0000, 'Red'),
+  (0xFFFFFF00, 'Yellow'),
+  (0xFF0000FF, 'Blue'),
 ];
 
 Future<int?> showZoneColorPicker({
@@ -41,36 +34,70 @@ class _ZoneColorPicker extends StatefulWidget {
 class _ZoneColorPickerState extends State<_ZoneColorPicker> {
   late int _selected;
   late double _hue;
+  late double _saturation;
+  late double _lightness;
 
   @override
   void initState() {
     super.initState();
     _selected = widget.initialColor;
-    final hue = HSLColor.fromColor(Color(widget.initialColor)).hue;
-    _hue = hue.isNaN ? 0 : hue;
+    final hsl = HSLColor.fromColor(Color(widget.initialColor));
+    _hue = hsl.hue.isNaN ? 0 : hsl.hue;
+    _saturation = hsl.saturation.isNaN ? 0 : hsl.saturation;
+    _lightness = hsl.lightness;
   }
 
   void _select(int colorValue) {
-    final hue = HSLColor.fromColor(Color(colorValue)).hue;
+    final hsl = HSLColor.fromColor(Color(colorValue));
     setState(() {
       _selected = colorValue;
-      if (!hue.isNaN) _hue = hue;
+      if (!hsl.hue.isNaN) _hue = hsl.hue;
+      _saturation = hsl.saturation.isNaN ? 0 : hsl.saturation;
+      _lightness = hsl.lightness;
     });
   }
 
   void _onHue(double hue) {
-    final color = HSLColor.fromAHSL(1, hue, 0.38, 0.74).toColor();
     setState(() {
       _hue = hue;
-      _selected = color.toARGB32();
+      // Gray has almost no saturation, so the first move on this slider
+      // jumps to a vivid color instead of a barely visible tint.
+      if (_saturation < 0.15) {
+        _saturation = 1;
+        _lightness = 0.5;
+      }
+      _applyHsl();
     });
+  }
+
+  void _onSaturation(double saturation) {
+    setState(() {
+      _saturation = saturation;
+      _applyHsl();
+    });
+  }
+
+  void _onLightness(double lightness) {
+    setState(() {
+      _lightness = lightness;
+      _applyHsl();
+    });
+  }
+
+  void _applyHsl() {
+    _selected = HSLColor.fromAHSL(
+      1,
+      _hue,
+      _saturation,
+      _lightness,
+    ).toColor().toARGB32();
   }
 
   @override
   Widget build(BuildContext context) {
     final preview = Color(_selected);
     return SafeArea(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -86,7 +113,7 @@ class _ZoneColorPickerState extends State<_ZoneColorPicker> {
             ),
             const SizedBox(height: 4),
             const Text(
-              'Used for this place’s name and clock. Default is neutral gray.',
+              'Choose a primary color, or slide to any custom color. This colors the place name and clock.',
               style: TextStyle(
                 color: AppColors.muted,
                 fontSize: 13,
@@ -108,58 +135,96 @@ class _ZoneColorPickerState extends State<_ZoneColorPicker> {
                       'Place name',
                       style: zoneTextStyle(
                         color: preview,
-                        size: 18,
+                        size: AppMetrics(
+                          MediaQuery.sizeOf(context).width,
+                        ).placeName,
                         weight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 6),
-                    Text(
-                      '9:41:02 AM',
-                      style: zoneTextStyle(color: preview, size: 36),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '9:41 AM',
+                        style: zoneTextStyle(
+                          color: preview,
+                          size: AppMetrics(
+                            MediaQuery.sizeOf(context).width,
+                          ).zoneClock,
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
+            const _SectionLabel('Primary colors'),
+            const SizedBox(height: 10),
             Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: 10,
+              runSpacing: 10,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                for (final swatch in _swatches)
-                  Tooltip(
-                    message: swatch.$2,
-                    child: InkWell(
-                      onTap: () => _select(swatch.$1),
-                      customBorder: const CircleBorder(),
-                      child: Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: Color(swatch.$1),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: _selected == swatch.$1
-                                ? AppColors.ink
-                                : AppColors.line,
-                            width: _selected == swatch.$1 ? 2 : 1,
-                          ),
-                        ),
-                      ),
-                    ),
+                _Swatch(
+                  colorValue: SavedZone.defaultColorValue,
+                  label: 'Neutral gray',
+                  selected: _selected == SavedZone.defaultColorValue,
+                  onTap: () => _select(SavedZone.defaultColorValue),
+                ),
+                for (final swatch in _primaries)
+                  _Swatch(
+                    colorValue: swatch.$1,
+                    label: swatch.$2,
+                    selected: _selected == swatch.$1,
+                    onTap: () => _select(swatch.$1),
                   ),
               ],
             ),
-            const SizedBox(height: 8),
-            Semantics(
-              label: 'Custom hue',
-              child: Slider(
-                value: _hue.clamp(0, 360).toDouble(),
-                max: 360,
-                activeColor: AppColors.ink,
-                onChanged: _onHue,
-              ),
+            const SizedBox(height: 18),
+            const _SectionLabel('All colors'),
+            const SizedBox(height: 4),
+            _ColorSlider(
+              label: 'Color',
+              value: _hue.clamp(0, 360).toDouble(),
+              max: 360,
+              onChanged: _onHue,
+              colors: const [
+                Color(0xFFFF0000),
+                Color(0xFFFFFF00),
+                Color(0xFF00FF00),
+                Color(0xFF00FFFF),
+                Color(0xFF0000FF),
+                Color(0xFFFF00FF),
+                Color(0xFFFF0000),
+              ],
             ),
+            const SizedBox(height: 8),
+            const _SectionLabel('Custom'),
+            const SizedBox(height: 4),
+            _ColorSlider(
+              label: 'Saturation',
+              value: _saturation.clamp(0, 1).toDouble(),
+              max: 1,
+              onChanged: _onSaturation,
+              colors: [
+                HSLColor.fromAHSL(1, _hue, 0, _lightness).toColor(),
+                HSLColor.fromAHSL(1, _hue, 1, _lightness).toColor(),
+              ],
+            ),
+            _ColorSlider(
+              label: 'Lightness',
+              value: _lightness.clamp(0, 1).toDouble(),
+              max: 1,
+              onChanged: _onLightness,
+              colors: [
+                const Color(0xFF000000),
+                HSLColor.fromAHSL(1, _hue, _saturation, 0.5).toColor(),
+                const Color(0xFFFFFFFF),
+              ],
+            ),
+            const SizedBox(height: 8),
             Row(
               children: [
                 TextButton(
@@ -175,6 +240,124 @@ class _ZoneColorPickerState extends State<_ZoneColorPicker> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text.toUpperCase(),
+      style: const TextStyle(
+        color: AppColors.muted,
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 1.4,
+      ),
+    );
+  }
+}
+
+class _Swatch extends StatelessWidget {
+  const _Swatch({
+    required this.colorValue,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final int colorValue;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: label,
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: Color(colorValue),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: selected ? AppColors.ink : AppColors.line,
+              width: selected ? 2.5 : 1,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ColorSlider extends StatelessWidget {
+  const _ColorSlider({
+    required this.label,
+    required this.value,
+    required this.max,
+    required this.onChanged,
+    required this.colors,
+  });
+
+  final String label;
+  final double value;
+  final double max;
+  final ValueChanged<double> onChanged;
+  final List<Color> colors;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: label,
+      slider: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(color: AppColors.muted, fontSize: 13),
+          ),
+          SizedBox(
+            height: 40,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      gradient: LinearGradient(colors: colors),
+                      border: Border.all(color: AppColors.line),
+                    ),
+                    child: const SizedBox(height: 12, width: double.infinity),
+                  ),
+                ),
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 12,
+                    activeTrackColor: Colors.transparent,
+                    inactiveTrackColor: Colors.transparent,
+                    thumbColor: AppColors.ink,
+                    overlayColor: AppColors.ink.withValues(alpha: 0.12),
+                  ),
+                  child: Slider(value: value, max: max, onChanged: onChanged),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

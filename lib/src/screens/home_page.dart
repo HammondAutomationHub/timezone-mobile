@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../data/place_catalog.dart';
@@ -20,6 +22,7 @@ class HomePage extends StatelessWidget {
     required this.onColorChanged,
     required this.onRemove,
     required this.onRestore,
+    required this.onReorder,
     super.key,
   });
 
@@ -31,6 +34,7 @@ class HomePage extends StatelessWidget {
   final void Function(SavedZone zone, int colorValue) onColorChanged;
   final ValueChanged<SavedZone> onRemove;
   final void Function(SavedZone zone, int index) onRestore;
+  final void Function(int oldIndex, int newIndex) onReorder;
 
   void _openAdd(BuildContext context) {
     Navigator.of(context).push(
@@ -76,28 +80,31 @@ class HomePage extends StatelessWidget {
     final deviceZone = now.timeZoneName;
     return Scaffold(
       body: SafeArea(
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 680),
-            child: CustomScrollView(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final metrics = AppMetrics(constraints.maxWidth);
+            final side = math.max(0.0, (constraints.maxWidth - 680) / 2);
+            final pad = metrics.pagePadding;
+            return CustomScrollView(
               slivers: [
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 12, 0),
+                  padding: EdgeInsets.fromLTRB(side + pad, 12, side + 12, 0),
                   sliver: SliverToBoxAdapter(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            const Expanded(
+                            Expanded(
                               child: Text(
                                 'TIMEZONEMOBILE',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   color: AppColors.muted,
-                                  fontSize: 12,
+                                  fontSize: metrics.lerp(11, 12),
                                   fontWeight: FontWeight.w600,
-                                  letterSpacing: 1.6,
+                                  letterSpacing: metrics.lerp(0.6, 1.6),
                                 ),
                               ),
                             ),
@@ -116,16 +123,24 @@ class HomePage extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          formatClock(now),
-                          style: zoneTextStyle(color: AppColors.ink, size: 40),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            formatClock(now),
+                            style: zoneTextStyle(
+                              color: AppColors.ink,
+                              size: metrics.localClock,
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 6),
                         Text(
                           '${formatDateLine(now)} · $deviceZone · ${formatGmtOffset(now.timeZoneOffset)}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.muted,
-                            fontSize: 14,
+                            fontSize: metrics.meta,
+                            height: 1.35,
                           ),
                         ),
                         if (!online) const _OfflineIndicator(),
@@ -136,7 +151,7 @@ class HomePage extends StatelessWidget {
                 ),
                 if (zones.isEmpty)
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+                    padding: EdgeInsets.fromLTRB(side + pad, 0, side + pad, 28),
                     sliver: SliverToBoxAdapter(
                       child: EmptyState(
                         suggestions: catalog.starters,
@@ -148,28 +163,53 @@ class HomePage extends StatelessWidget {
                   )
                 else
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                    sliver: SliverList.separated(
+                    padding: EdgeInsets.fromLTRB(side + pad, 0, side + pad, 12),
+                    sliver: SliverReorderableList(
                       itemCount: zones.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 12),
+                      onReorder: onReorder,
                       itemBuilder: (context, index) {
                         final zone = zones[index];
-                        return ZoneCard(
-                          zone: zone,
-                          now: now,
-                          onPickColor: () => _pickColor(context, zone),
-                          onRemove: () => _remove(context, zone),
+                        final canReorder = zones.length > 1;
+                        return Padding(
+                          key: ValueKey(zone.id),
+                          padding: EdgeInsets.only(
+                            bottom: index == zones.length - 1 ? 0 : 12,
+                          ),
+                          child: canReorder
+                              ? ReorderableDelayedDragStartListener(
+                                  index: index,
+                                  child: ZoneCard(
+                                    zone: zone,
+                                    now: now,
+                                    countryCode: catalog.countryCodeFor(
+                                      zone.id,
+                                      zone.ianaId,
+                                    ),
+                                    reorderIndex: index,
+                                    onPickColor: () => _pickColor(context, zone),
+                                    onRemove: () => _remove(context, zone),
+                                  ),
+                                )
+                              : ZoneCard(
+                                  zone: zone,
+                                  now: now,
+                                  countryCode: catalog.countryCodeFor(
+                                    zone.id,
+                                    zone.ianaId,
+                                  ),
+                                  onPickColor: () => _pickColor(context, zone),
+                                  onRemove: () => _remove(context, zone),
+                                ),
                         );
                       },
                     ),
                   ),
                 if (zones.isNotEmpty)
-                  const SliverPadding(
-                    padding: EdgeInsets.fromLTRB(24, 4, 24, 28),
-                    sliver: SliverToBoxAdapter(
+                  SliverPadding(
+                    padding: EdgeInsets.fromLTRB(side + pad, 4, side + pad, 24),
+                    sliver: const SliverToBoxAdapter(
                       child: Text(
-                        'Business hours are 9 AM–5 PM in that place. Outside that window, the card shifts color.',
+                        'Drag a handle to arrange the list. Business hours are 9 AM–5 PM in that place. Outside that window, the card shifts color.',
                         style: TextStyle(
                           color: AppColors.faint,
                           fontSize: 12,
@@ -179,8 +219,8 @@ class HomePage extends StatelessWidget {
                     ),
                   ),
               ],
-            ),
-          ),
+            );
+          },
         ),
       ),
     );

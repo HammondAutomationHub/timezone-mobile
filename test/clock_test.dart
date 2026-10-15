@@ -10,6 +10,10 @@ void main() {
     expect(formatClock(DateTime(2026, 1, 1, 0, 5, 9)), '12:05:09 AM');
     expect(formatClock(DateTime(2026, 1, 1, 12)), '12:00:00 PM');
     expect(formatClock(DateTime(2026, 1, 1, 15, 4, 5)), '3:04:05 PM');
+    expect(
+      formatClock(DateTime(2026, 1, 1, 15, 4, 5), includeSeconds: false),
+      '3:04 PM',
+    );
     expect(formatDateLine(DateTime(2026, 10, 15)), 'Thursday, Oct 15');
 
     expect(formatRelativeOffset(Duration.zero), 'Same time as you');

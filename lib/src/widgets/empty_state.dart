@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../logic/clock.dart';
 import '../models/place.dart';
 import '../theme/app_theme.dart';
+import 'zone_flag.dart';
 
 class EmptyState extends StatelessWidget {
   const EmptyState({
@@ -20,24 +21,29 @@ class EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final metrics = AppMetrics(MediaQuery.sizeOf(context).width);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'No places yet',
           style: TextStyle(
             color: AppColors.ink,
-            fontSize: 28,
+            fontSize: metrics.headline,
             fontWeight: FontWeight.w600,
             height: 1.15,
           ),
         ),
         const SizedBox(height: 10),
-        const Text(
+        Text(
           'Pin a city or country to keep its local time on this device. '
           'The offset is measured from your clock, and daylight saving follows the IANA zone. '
           'Cards shift color outside local business hours, 9 AM to 5 PM.',
-          style: TextStyle(color: AppColors.muted, fontSize: 15, height: 1.45),
+          style: TextStyle(
+            color: AppColors.muted,
+            fontSize: metrics.body,
+            height: 1.45,
+          ),
         ),
         const SizedBox(height: 22),
         const Text(
@@ -103,20 +109,31 @@ class SuggestionTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      place.label,
-                      style: const TextStyle(
-                        color: AppColors.ink,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    Row(
+                      children: [
+                        ZoneFlag(countryCode: place.countryCode),
+                        if (place.countryCode != null) const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            place.label,
+                            style: const TextStyle(
+                              color: AppColors.ink,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      '${formatClock(clock.local)} · ${formatRelativeOffset(clock.relative)}',
-                      style: const TextStyle(
+                      '${formatClock(clock.local, includeSeconds: false)} · ${formatRelativeOffset(clock.relative)}',
+                      style: TextStyle(
                         color: AppColors.muted,
-                        fontSize: 13,
+                        fontSize: AppMetrics(
+                          MediaQuery.sizeOf(context).width,
+                        ).meta,
+                        height: 1.3,
                       ),
                     ),
                     const SizedBox(height: 6),
