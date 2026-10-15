@@ -129,7 +129,7 @@ class HomePage extends StatelessWidget {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            formatClock(now),
+                            formatClock(now, includeSeconds: false),
                             style: zoneTextStyle(
                               color: AppColors.ink,
                               size: metrics.localClock,

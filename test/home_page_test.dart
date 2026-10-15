@@ -83,6 +83,18 @@ void main() {
     expect(find.textContaining('Offline'), findsOneWidget);
   });
 
+  testWidgets('your time shows hours and minutes without seconds', (
+    tester,
+  ) async {
+    final now = DateTime(2026, 1, 1, 15, 4, 5);
+    await pumpHome(tester, zones: const [], now: now);
+
+    expect(find.text('Your time'), findsOneWidget);
+    expect(find.text('3:04 PM'), findsOneWidget);
+    expect(find.text('3:04:05 PM'), findsNothing);
+    expect(find.textContaining('Thursday, Jan 1'), findsOneWidget);
+  });
+
   testWidgets('saved zones show local time, offset, and business hours', (
     tester,
   ) async {
