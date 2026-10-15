@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
 import '../data/place_catalog.dart';
@@ -72,13 +70,10 @@ class _AddPlacePageState extends State<AddPlacePage> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Add a place')),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final side = math.max(0.0, (constraints.maxWidth - 680) / 2);
-          return Column(
-            children: [
+      body: Column(
+        children: [
               Padding(
-                padding: EdgeInsets.fromLTRB(side + 20, 4, side + 20, 8),
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
                 child: TextField(
                   controller: _controller,
                   autofocus: true,
@@ -98,7 +93,6 @@ class _AddPlacePageState extends State<AddPlacePage> {
                         now: widget.now,
                         savedIds: _savedIds,
                         onAdd: _add,
-                        sideInset: side,
                       )
                     : results.isEmpty
                     ? const Center(
@@ -112,12 +106,9 @@ class _AddPlacePageState extends State<AddPlacePage> {
                         now: widget.now,
                         savedIds: _savedIds,
                         onAdd: _add,
-                        sideInset: side,
                       ),
               ),
-            ],
-          );
-        },
+        ],
       ),
     );
   }
@@ -129,19 +120,16 @@ class _BrowseList extends StatelessWidget {
     required this.now,
     required this.savedIds,
     required this.onAdd,
-    required this.sideInset,
   });
 
   final PlaceCatalog catalog;
   final DateTime now;
   final Set<String> savedIds;
   final ValueChanged<Place> onAdd;
-  final double sideInset;
 
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: EdgeInsets.symmetric(horizontal: sideInset),
       children: [
         const _SectionLabel('Suggested'),
         _PlaceList(
@@ -194,7 +182,6 @@ class _PlaceList extends StatelessWidget {
     required this.savedIds,
     required this.onAdd,
     this.shrinkWrap = false,
-    this.sideInset = 0,
   });
 
   final List<Place> places;
@@ -202,13 +189,11 @@ class _PlaceList extends StatelessWidget {
   final Set<String> savedIds;
   final ValueChanged<Place> onAdd;
   final bool shrinkWrap;
-  final double sideInset;
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
       shrinkWrap: shrinkWrap,
-      padding: EdgeInsets.symmetric(horizontal: sideInset),
       physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
       itemCount: places.length,
       itemBuilder: (context, index) {

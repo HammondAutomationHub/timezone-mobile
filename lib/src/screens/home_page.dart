@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
 import '../data/place_catalog.dart';
@@ -87,12 +85,11 @@ class HomePage extends StatelessWidget {
               constraints.maxWidth,
               height: constraints.maxHeight,
             );
-            final side = math.max(0.0, (constraints.maxWidth - 680) / 2);
             final pad = metrics.pagePadding;
             return CustomScrollView(
               slivers: [
                 SliverPadding(
-                  padding: EdgeInsets.fromLTRB(side + pad, 12, side + 12, 0),
+                  padding: EdgeInsets.fromLTRB(pad, 12, pad, 0),
                   sliver: SliverToBoxAdapter(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -156,7 +153,7 @@ class HomePage extends StatelessWidget {
                 ),
                 if (zones.isEmpty)
                   SliverPadding(
-                    padding: EdgeInsets.fromLTRB(side + pad, 0, side + pad, 28),
+                    padding: EdgeInsets.fromLTRB(pad, 0, pad, 28),
                     sliver: SliverToBoxAdapter(
                       child: EmptyState(
                         suggestions: catalog.starters,
@@ -168,7 +165,7 @@ class HomePage extends StatelessWidget {
                   )
                 else
                   SliverPadding(
-                    padding: EdgeInsets.fromLTRB(side + pad, 0, side + pad, 12),
+                    padding: EdgeInsets.fromLTRB(pad, 0, pad, 12),
                     sliver: SliverReorderableList(
                       itemCount: zones.length,
                       onReorder: onReorder,
@@ -213,7 +210,7 @@ class HomePage extends StatelessWidget {
                   ),
                 if (zones.isNotEmpty)
                   SliverPadding(
-                    padding: EdgeInsets.fromLTRB(side + pad, 4, side + pad, 24),
+                    padding: EdgeInsets.fromLTRB(pad, 4, pad, 24),
                     sliver: const SliverToBoxAdapter(
                       child: Text(
                         'Drag a handle to arrange the list. Business hours are 9 AM–5 PM in that place. Outside that window, the card shifts color.',

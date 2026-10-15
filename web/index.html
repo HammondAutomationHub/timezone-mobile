@@ -21,6 +21,52 @@
   <meta name="description" content="TimeZoneMobile is a local world clock. Daylight saving is automatic, and your places stay on this device.">
   <meta name="theme-color" content="#101418">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    // Flutter resets the viewport to the monitor width. On an installed
+    // desktop window, put it back to the frame width whenever that happens.
+    (function () {
+      var desktopApp = window.matchMedia('(display-mode: standalone), (display-mode: minimal-ui), (display-mode: window-controls-overlay)').matches
+        && !/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+      if (!desktopApp) return;
+
+      function windowWidth() {
+        var visual = window.visualViewport && window.visualViewport.width;
+        var width = window.innerWidth;
+        if (visual && visual > 0 && visual < width) width = visual;
+        if (window.outerWidth > 0 && window.outerWidth < width) width = window.outerWidth;
+        return Math.max(1, Math.round(width));
+      }
+
+      function sync() {
+        var viewport = document.querySelector('meta[name="viewport"]');
+        if (!viewport) return;
+        var next = 'width=' + windowWidth() + ', initial-scale=1, viewport-fit=cover';
+        if (viewport.getAttribute('content') !== next) {
+          viewport.setAttribute('content', next);
+          window.dispatchEvent(new Event('resize'));
+        }
+      }
+
+      var frame = 0;
+      function schedule() {
+        if (frame) return;
+        frame = window.requestAnimationFrame(function () {
+          frame = 0;
+          sync();
+        });
+      }
+
+      new MutationObserver(schedule).observe(document.head, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['content'],
+      });
+      window.addEventListener('resize', schedule);
+      if (window.visualViewport) window.visualViewport.addEventListener('resize', schedule);
+      schedule();
+    })();
+  </script>
 
   <!-- Installed app on Android, iOS, and desktop. -->
   <meta name="mobile-web-app-capable" content="yes">
