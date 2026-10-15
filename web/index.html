@@ -42,6 +42,17 @@
   </style>
 </head>
 <body>
+  <script>
+    // Keep Chrome's install event until the Install button asks for it.
+    window.__tzInstallPrompt = null;
+    window.addEventListener('beforeinstallprompt', function (event) {
+      event.preventDefault();
+      window.__tzInstallPrompt = event;
+    });
+    window.addEventListener('appinstalled', function () {
+      window.__tzInstallPrompt = null;
+    });
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

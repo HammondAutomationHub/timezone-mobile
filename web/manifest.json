@@ -1,9 +1,9 @@
 {
     "name": "TimeZoneMobile",
     "short_name": "TimeZoneMobile",
-    "id": "./",
-    "start_url": ".",
-    "scope": "./",
+    "id": "/timezone-mobile/",
+    "start_url": "/timezone-mobile/",
+    "scope": "/timezone-mobile/",
     "display": "standalone",
     "background_color": "#101418",
     "theme_color": "#101418",

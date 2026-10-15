@@ -2,7 +2,7 @@
 
 // Network-first cache for the TimeZoneMobile shell. Paths are relative to this
 // worker so a GitHub Pages project site (a subpath) still resolves.
-const CACHE = 'timezonemobile-v1';
+const CACHE = 'timezonemobile-v2';
 
 const PRECACHE = [
   './',
@@ -63,7 +63,7 @@ self.addEventListener('fetch', (event) => {
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
     try {
-      const response = await fetch(request);
+      const response = await fetch(request, { cache: 'no-cache' });
       if (response && response.ok && response.status !== 206) {
         try {
           await cache.put(request, response.clone());

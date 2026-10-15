@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../data/place_catalog.dart';
+import '../install/install_prompt.dart';
 import '../logic/clock.dart';
 import '../models/place.dart';
 import '../models/saved_zone.dart';
@@ -108,6 +109,7 @@ class HomePage extends StatelessWidget {
                                 ),
                               ),
                             ),
+                            const InstallButton(),
                             TextButton(
                               onPressed: () => _openAdd(context),
                               child: const Text('Add'),
