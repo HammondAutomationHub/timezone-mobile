@@ -135,9 +135,7 @@ class _ZoneColorPickerState extends State<_ZoneColorPicker> {
                       'Place name',
                       style: zoneTextStyle(
                         color: preview,
-                        size: AppMetrics(
-                          MediaQuery.sizeOf(context).width,
-                        ).placeName,
+                        size: AppMetrics.of(context).placeName,
                         weight: FontWeight.w600,
                       ),
                     ),
@@ -149,9 +147,7 @@ class _ZoneColorPickerState extends State<_ZoneColorPicker> {
                         '9:41 AM',
                         style: zoneTextStyle(
                           color: preview,
-                          size: AppMetrics(
-                            MediaQuery.sizeOf(context).width,
-                          ).zoneClock,
+                          size: AppMetrics.of(context).zoneClock,
                         ),
                       ),
                     ),

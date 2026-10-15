@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
@@ -13,23 +15,40 @@ abstract final class AppColors {
   static const closed = Color(0xFFE0A36A);
 }
 
-/// Type sizes for the width of the window. Desktop keeps the large clocks.
-/// A phone steps them down so the time, date, and place names stay on screen.
+/// Type and spacing follow the window. A large desktop keeps the full clocks.
+/// Shrinking the window on Windows or Mac steps the clocks, cards, and gaps down.
 final class AppMetrics {
-  AppMetrics(double width) : _t = ((width - 320) / 320).clamp(0.0, 1.0);
+  AppMetrics(double width, {double height = 900})
+    : _t = math.min(_axis(width, 300, 800), _axis(height, 340, 680));
+
+  factory AppMetrics.of(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    return AppMetrics(size.width, height: size.height);
+  }
 
   final double _t;
+
+  static double _axis(double value, double compact, double regular) {
+    return ((value - compact) / (regular - compact)).clamp(0.0, 1.0);
+  }
 
   double lerp(double compact, double regular) =>
       compact + (regular - compact) * _t;
 
-  double get localClock => lerp(26, 40);
-  double get zoneClock => lerp(22, 34);
-  double get placeName => lerp(16, 18);
-  double get headline => lerp(22, 28);
-  double get body => lerp(14, 15);
-  double get meta => lerp(12, 14);
-  double get pagePadding => lerp(16, 20);
+  double get localClock => lerp(20, 40);
+  double get zoneClock => lerp(16, 34);
+  double get placeName => lerp(14, 18);
+  double get headline => lerp(18, 28);
+  double get body => lerp(13, 15);
+  double get meta => lerp(11, 14);
+  double get pagePadding => lerp(10, 20);
+  double get cardGap => lerp(8, 12);
+  double get sectionGap => lerp(10, 22);
+  double get cardPadLeft => lerp(10, 16);
+  double get cardPadTop => lerp(8, 14);
+  double get cardPadRight => lerp(4, 8);
+  double get cardPadBottom => lerp(8, 16);
+  double get iconTap => lerp(28, 36);
 }
 
 TextStyle zoneTextStyle({

@@ -21,7 +21,7 @@ class EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final metrics = AppMetrics(MediaQuery.sizeOf(context).width);
+    final metrics = AppMetrics.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -130,9 +130,7 @@ class SuggestionTile extends StatelessWidget {
                       '${formatClock(clock.local, includeSeconds: false)} · ${formatRelativeOffset(clock.relative)}',
                       style: TextStyle(
                         color: AppColors.muted,
-                        fontSize: AppMetrics(
-                          MediaQuery.sizeOf(context).width,
-                        ).meta,
+                        fontSize: AppMetrics.of(context).meta,
                         height: 1.3,
                       ),
                     ),

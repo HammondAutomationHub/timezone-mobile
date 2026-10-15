@@ -232,6 +232,27 @@ void main() {
     expect(find.text('5:00 AM'), findsOneWidget);
     expect(find.text('9:00 PM'), findsOneWidget);
     expect(tester.takeException(), isNull);
+
+    await pumpHome(
+      tester,
+      size: const Size(280, 360),
+      zones: const [
+        SavedZone(
+          ianaId: 'America/Los_Angeles',
+          label: 'California',
+          subtitle: 'Los Angeles',
+          colorValue: SavedZone.defaultColorValue,
+        ),
+        SavedZone(
+          ianaId: 'Asia/Tokyo',
+          label: 'Japan',
+          subtitle: 'Tokyo',
+          colorValue: SavedZone.defaultColorValue,
+        ),
+      ],
+    );
+    expect(find.text('California'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('dragging a handle reports the new tile order', (tester) async {

@@ -83,7 +83,10 @@ class HomePage extends StatelessWidget {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final metrics = AppMetrics(constraints.maxWidth);
+            final metrics = AppMetrics(
+              constraints.maxWidth,
+              height: constraints.maxHeight,
+            );
             final side = math.max(0.0, (constraints.maxWidth - 680) / 2);
             final pad = metrics.pagePadding;
             return CustomScrollView(
@@ -146,7 +149,7 @@ class HomePage extends StatelessWidget {
                           ),
                         ),
                         if (!online) const _OfflineIndicator(),
-                        const SizedBox(height: 22),
+                        SizedBox(height: metrics.sectionGap),
                       ],
                     ),
                   ),
@@ -175,7 +178,9 @@ class HomePage extends StatelessWidget {
                         return Padding(
                           key: ValueKey(zone.id),
                           padding: EdgeInsets.only(
-                            bottom: index == zones.length - 1 ? 0 : 12,
+                            bottom: index == zones.length - 1
+                                ? 0
+                                : metrics.cardGap,
                           ),
                           child: canReorder
                               ? ReorderableDelayedDragStartListener(

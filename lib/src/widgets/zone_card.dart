@@ -29,7 +29,7 @@ class ZoneCard extends StatelessWidget {
     final open = isWithinBusinessHours(clock.local);
     final accent = open ? AppColors.open : AppColors.closed;
     final textColor = Color(zone.colorValue);
-    final metrics = AppMetrics(MediaQuery.sizeOf(context).width);
+    final metrics = AppMetrics.of(context);
 
     return Material(
       color: open ? AppColors.surface : AppColors.surfaceClosed,
@@ -38,7 +38,12 @@ class ZoneCard extends StatelessWidget {
         side: BorderSide(color: accent.withValues(alpha: 0.85)),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 14, 8, 16),
+        padding: EdgeInsets.fromLTRB(
+          metrics.cardPadLeft,
+          metrics.cardPadTop,
+          metrics.cardPadRight,
+          metrics.cardPadBottom,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -86,9 +91,16 @@ class ZoneCard extends StatelessWidget {
                     index: reorderIndex!,
                     child: Tooltip(
                       message: 'Drag to rearrange ${zone.label}',
-                      child: const Padding(
-                        padding: EdgeInsets.fromLTRB(4, 10, 4, 10),
-                        child: Icon(Icons.drag_handle, color: AppColors.muted),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 2,
+                          vertical: metrics.lerp(2, 8),
+                        ),
+                        child: Icon(
+                          Icons.drag_handle,
+                          size: metrics.lerp(18, 24),
+                          color: AppColors.muted,
+                        ),
                       ),
                     ),
                   ),
@@ -96,10 +108,10 @@ class ZoneCard extends StatelessWidget {
                   message: 'Text color for ${zone.label}',
                   child: IconButton(
                     onPressed: onPickColor,
-                    visualDensity: VisualDensity.compact,
+                    style: _cardButtonStyle(metrics),
                     icon: Container(
-                      width: 22,
-                      height: 22,
+                      width: metrics.lerp(16, 22),
+                      height: metrics.lerp(16, 22),
                       decoration: BoxDecoration(
                         color: textColor,
                         shape: BoxShape.circle,
@@ -112,13 +124,17 @@ class ZoneCard extends StatelessWidget {
                   message: 'Remove ${zone.label}',
                   child: IconButton(
                     onPressed: onRemove,
-                    visualDensity: VisualDensity.compact,
-                    icon: const Icon(Icons.close, color: AppColors.muted),
+                    style: _cardButtonStyle(metrics),
+                    icon: Icon(
+                      Icons.close,
+                      size: metrics.lerp(16, 20),
+                      color: AppColors.muted,
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: metrics.lerp(6, 12)),
             FittedBox(
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
@@ -135,20 +151,20 @@ class ZoneCard extends StatelessWidget {
               formatDateLine(clock.local),
               style: TextStyle(color: AppColors.muted, fontSize: metrics.meta),
             ),
-            const SizedBox(height: 14),
-            Row(
+            SizedBox(height: metrics.lerp(8, 14)),
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Expanded(
-                  child: Text(
-                    formatRelativeOffset(clock.relative),
-                    style: TextStyle(
-                      color: AppColors.ink,
-                      fontSize: metrics.meta,
-                      fontWeight: FontWeight.w600,
-                    ),
+                Text(
+                  formatRelativeOffset(clock.relative),
+                  style: TextStyle(
+                    color: AppColors.ink,
+                    fontSize: metrics.meta,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(width: 8),
                 DecoratedBox(
                   decoration: BoxDecoration(
                     color: accent.withValues(alpha: 0.16),
@@ -176,4 +192,15 @@ class ZoneCard extends StatelessWidget {
       ),
     );
   }
+}
+
+ButtonStyle _cardButtonStyle(AppMetrics metrics) {
+  final tap = metrics.iconTap;
+  return IconButton.styleFrom(
+    minimumSize: Size(tap, tap),
+    fixedSize: Size(tap, tap),
+    padding: EdgeInsets.zero,
+    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    visualDensity: VisualDensity.compact,
+  );
 }
