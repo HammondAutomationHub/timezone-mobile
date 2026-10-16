@@ -7,6 +7,7 @@ import '../models/place.dart';
 import '../models/saved_zone.dart';
 import '../theme/app_theme.dart';
 import '../widgets/color_picker_sheet.dart';
+import '../widgets/ellipsis_line.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/zone_card.dart';
 import 'add_place_page.dart';
@@ -103,15 +104,13 @@ class HomePage extends StatelessWidget {
                               child: Row(
                                 children: [
                                   Flexible(
-                                    child: Text(
-                                      'TIMEZONEMOBILE',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                                    child: EllipsisLine(
+                                      text: 'TIMEZONEMOBILE',
                                       style: TextStyle(
                                         color: AppColors.muted,
                                         fontSize: metrics.lerp(11, 12),
                                         fontWeight: FontWeight.w600,
-                                        letterSpacing: metrics.lerp(0.6, 1.6),
+                                        letterSpacing: metrics.lerp(0.4, 1.2),
                                       ),
                                     ),
                                   ),
@@ -132,6 +131,7 @@ class HomePage extends StatelessWidget {
                             ),
                             const InstallButton(),
                             TextButton(
+                              style: _shrinkButtonStyle,
                               onPressed: () => _openAdd(context),
                               child: const Text('Add'),
                             ),
@@ -158,8 +158,10 @@ class HomePage extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 6),
-                        Text(
-                          '${formatDateLine(now)} · $deviceZone · ${formatGmtOffset(now.timeZoneOffset)}',
+                        EllipsisLine(
+                          text:
+                              '${formatDateLine(now)} · $deviceZone · ${formatGmtOffset(now.timeZoneOffset)}',
+                          maxLines: 3,
                           style: TextStyle(
                             color: AppColors.muted,
                             fontSize: metrics.meta,
@@ -235,6 +237,7 @@ class HomePage extends StatelessWidget {
                     sliver: const SliverToBoxAdapter(
                       child: Text(
                         'Drag a handle to arrange the list. Business hours are 9 AM–5 PM in that place. Outside that window, the card shifts color.',
+                        softWrap: true,
                         style: TextStyle(
                           color: AppColors.faint,
                           fontSize: 12,
@@ -251,6 +254,13 @@ class HomePage extends StatelessWidget {
     );
   }
 }
+
+const _shrinkButtonStyle = ButtonStyle(
+  minimumSize: WidgetStatePropertyAll(Size.zero),
+  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+  visualDensity: VisualDensity.compact,
+  padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 6)),
+);
 
 class _OfflineIndicator extends StatelessWidget {
   const _OfflineIndicator();

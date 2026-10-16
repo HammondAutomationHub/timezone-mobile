@@ -265,6 +265,24 @@ void main() {
     );
     expect(find.text('California'), findsOneWidget);
     expect(tester.takeException(), isNull);
+
+    await pumpHome(
+      tester,
+      size: const Size(220, 640),
+      zones: const [
+        SavedZone(
+          ianaId: 'America/Los_Angeles',
+          label: 'California',
+          subtitle: 'Los Angeles',
+          colorValue: SavedZone.defaultColorValue,
+        ),
+      ],
+    );
+    expect(find.text('TIMEZONEMOBILE'), findsOneWidget);
+    expect(find.text('dev'), findsOneWidget);
+    expect(find.text('California'), findsOneWidget);
+    expect(find.text('Add'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('dragging a handle reports the new tile order', (tester) async {

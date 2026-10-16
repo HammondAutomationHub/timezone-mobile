@@ -23,9 +23,10 @@ class _InstallButtonState extends State<InstallButton> {
       child: TextButton(
         key: const Key('install-app'),
         style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 6),
           minimumSize: Size.zero,
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          visualDensity: VisualDensity.compact,
         ),
         onPressed: () async {
           final accepted = await requestInstall(context);

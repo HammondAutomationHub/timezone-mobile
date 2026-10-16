@@ -61,12 +61,29 @@ class EmptyState extends StatelessWidget {
           const SizedBox(height: 8),
         ],
         const SizedBox(height: 8),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: TextButton.icon(
+        SizedBox(
+          width: double.infinity,
+          child: TextButton(
+            style: TextButton.styleFrom(
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+              alignment: Alignment.centerLeft,
+            ),
             onPressed: onSearch,
-            icon: const Icon(Icons.search, size: 18),
-            label: const Text('Search cities and countries'),
+            child: const Row(
+              children: [
+                Icon(Icons.search, size: 18),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Search cities and countries',
+                    softWrap: true,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],

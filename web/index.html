@@ -45,6 +45,32 @@
       overflow: hidden;
       background: #101418;
     }
+
+    /*
+      Flutter inserts a nowrap measurement paragraph with 100px letter-spacing.
+      Its layout width is about 3400px. Clip it so that width cannot become the
+      window's drag minimum. Leave letter-spacing alone so Flutter can still
+      detect a real text-spacing override.
+    */
+    body > p[aria-hidden="true"] {
+      width: 0 !important;
+      min-width: 0 !important;
+      max-width: 0 !important;
+      overflow: hidden !important;
+    }
+
+    flutter-view, flt-glass-pane, flt-semantics-host {
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    /* Semantics labels are nowrap and scaled with a transform, which does not
+       shrink their layout width. Clip them to the Flutter box. */
+    flt-semantics {
+      min-width: 0 !important;
+      max-width: 100% !important;
+      overflow: hidden !important;
+    }
   </style>
 </head>
 <body>

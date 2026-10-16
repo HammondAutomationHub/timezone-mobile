@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../logic/clock.dart';
 import '../models/saved_zone.dart';
 import '../theme/app_theme.dart';
+import 'ellipsis_line.dart';
 import 'zone_flag.dart';
 
 class ZoneCard extends StatelessWidget {
@@ -59,10 +60,9 @@ class ZoneCard extends StatelessWidget {
                           ZoneFlag(countryCode: countryCode),
                           if (countryCode != null) const SizedBox(width: 8),
                           Expanded(
-                            child: Text(
-                              zone.label,
+                            child: EllipsisLine(
+                              text: zone.label,
                               maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
                               style: zoneTextStyle(
                                 color: textColor,
                                 size: metrics.placeName,
@@ -73,10 +73,10 @@ class ZoneCard extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        '${zone.subtitle} · ${clock.local.timeZoneName} · ${formatGmtOffset(clock.local.timeZoneOffset)}',
+                      EllipsisLine(
+                        text:
+                            '${zone.subtitle} · ${clock.local.timeZoneName} · ${formatGmtOffset(clock.local.timeZoneOffset)}',
                         maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: AppColors.muted,
                           fontSize: metrics.meta,
@@ -147,8 +147,9 @@ class ZoneCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 6),
-            Text(
-              formatDateLine(clock.local),
+            EllipsisLine(
+              text: formatDateLine(clock.local),
+              maxLines: 2,
               style: TextStyle(color: AppColors.muted, fontSize: metrics.meta),
             ),
             SizedBox(height: metrics.lerp(8, 14)),
