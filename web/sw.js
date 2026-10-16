@@ -2,7 +2,7 @@
 
 // Network-first cache for the TimeZoneMobile shell. Paths are relative to this
 // worker so a GitHub Pages project site (a subpath) still resolves.
-const CACHE = 'timezonemobile-v6';
+const CACHE = 'timezonemobile-v7';
 
 const PRECACHE = [
   './',

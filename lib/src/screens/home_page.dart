@@ -11,6 +11,9 @@ import '../widgets/empty_state.dart';
 import '../widgets/zone_card.dart';
 import 'add_place_page.dart';
 
+/// Short git SHA from `--dart-define=BUILD_ID`. Local runs and tests show "dev".
+const _buildId = String.fromEnvironment('BUILD_ID', defaultValue: 'dev');
+
 class HomePage extends StatelessWidget {
   const HomePage({
     required this.now,
@@ -97,16 +100,34 @@ class HomePage extends StatelessWidget {
                         Row(
                           children: [
                             Expanded(
-                              child: Text(
-                                'TIMEZONEMOBILE',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: AppColors.muted,
-                                  fontSize: metrics.lerp(11, 12),
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: metrics.lerp(0.6, 1.6),
-                                ),
+                              child: Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      'TIMEZONEMOBILE',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: AppColors.muted,
+                                        fontSize: metrics.lerp(11, 12),
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: metrics.lerp(0.6, 1.6),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: metrics.lerp(4, 6)),
+                                  Text(
+                                    _buildId,
+                                    maxLines: 1,
+                                    softWrap: false,
+                                    style: TextStyle(
+                                      color: AppColors.faint,
+                                      fontSize: metrics.lerp(9, 10),
+                                      fontWeight: FontWeight.w500,
+                                      letterSpacing: 0.2,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                             const InstallButton(),
