@@ -54,6 +54,16 @@ const _months = [
   'Dec',
 ];
 
+/// Device-local instant for a schedule check: the calendar day of [now] at
+/// [hour] and [minute].
+///
+/// [now] is the device clock. Pass the result to [ZoneClock.resolve] for each
+/// saved place so every card shares one absolute instant. Daylight saving then
+/// comes from the IANA zone rather than a fixed offset.
+DateTime localScheduleInstant(DateTime now, int hour, int minute) {
+  return DateTime(now.year, now.month, now.day, hour, minute);
+}
+
 String formatClock(DateTime time, {bool includeSeconds = true}) {
   final hour = time.hour % 12 == 0 ? 12 : time.hour % 12;
   final minute = time.minute.toString().padLeft(2, '0');

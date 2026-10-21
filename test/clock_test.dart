@@ -6,6 +6,18 @@ import 'package:timezone_mobile/src/logic/clock.dart';
 void main() {
   setUpAll(tzdata.initializeTimeZones);
 
+  test('a schedule check uses today and the chosen clock', () {
+    final now = DateTime(2026, 10, 21, 9, 4, 58);
+    final scheduled = localScheduleInstant(now, 15, 30);
+    expect(scheduled.year, 2026);
+    expect(scheduled.month, 10);
+    expect(scheduled.day, 21);
+    expect(scheduled.hour, 15);
+    expect(scheduled.minute, 30);
+    expect(scheduled.second, 0);
+    expect(scheduled.isUtc, isFalse);
+  });
+
   test('formats clocks, dates, and offsets', () {
     expect(formatClock(DateTime(2026, 1, 1, 0, 5, 9)), '12:05:09 AM');
     expect(formatClock(DateTime(2026, 1, 1, 12)), '12:00:00 PM');

@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone_mobile/src/data/place_catalog.dart';
+import 'package:timezone_mobile/src/logic/clock.dart';
 import 'package:timezone_mobile/src/models/place.dart';
 import 'package:timezone_mobile/src/models/saved_zone.dart';
 import 'package:timezone_mobile/src/screens/add_place_page.dart';
 import 'package:timezone_mobile/src/screens/home_page.dart';
 import 'package:timezone_mobile/src/theme/app_theme.dart';
+import 'package:timezone_mobile/src/widgets/zone_card.dart';
 
 void main() {
   late PlaceCatalog catalog;
@@ -344,8 +346,11 @@ void main() {
     );
 
     final position = tester
-        .state<ScrollableState>(find.byType(Scrollable))
-        .position;
+        .stateList<ScrollableState>(find.byType(Scrollable))
+        .map((state) => state.position)
+        .firstWhere(
+          (item) => item.axis == Axis.vertical && item.maxScrollExtent > 0,
+        );
     expect(position.maxScrollExtent, greaterThan(0));
 
     await tester.sendEventToBinding(
@@ -358,4 +363,97 @@ void main() {
 
     expect(position.pixels, greaterThan(0));
   });
+
+  testWidgets(
+    'checking a local time converts a saved zone and unchecking restores the live clock',
+    (tester) async {
+      final now = DateTime(2026, 7, 15, 8, 15);
+      const zone = SavedZone(
+        ianaId: 'Asia/Tokyo',
+        label: 'Japan',
+        subtitle: 'Tokyo',
+        colorValue: SavedZone.defaultColorValue,
+      );
+      await pumpHome(
+        tester,
+        size: const Size(280, 640),
+        now: now,
+        zones: const [zone],
+      );
+
+      final live = ZoneClock.resolve(zone.ianaId, now);
+      final liveLabel = formatClock(live.local, includeSeconds: false);
+      final toggle = find.byKey(const Key('check-schedule-toggle'));
+      expect(_zoneText(liveLabel), findsOneWidget);
+      expect(find.text('Check schedule'), findsOneWidget);
+      expect(tester.widget<Checkbox>(toggle).value, isFalse);
+      expect(find.byKey(const Key('check-schedule-hour')), findsNothing);
+      expect(find.text('8:15 AM'), findsWidgets);
+      expect(find.text('8:15:00 AM'), findsNothing);
+
+      await tester.tap(toggle);
+      await tester.pump();
+      expect(tester.widget<Checkbox>(toggle).value, isTrue);
+      expect(_zoneText(liveLabel), findsOneWidget);
+      expect(
+        find.text('Blank keeps the current time in each place.'),
+        findsOneWidget,
+      );
+
+      await tester.enterText(find.byKey(const Key('check-schedule-hour')), '3');
+      await tester.enterText(
+        find.byKey(const Key('check-schedule-minute')),
+        '30',
+      );
+      await tester.pump();
+      expect(_zoneText(liveLabel), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('check-schedule-pm')));
+      await tester.pump();
+
+      final scheduled = localScheduleInstant(now, 15, 30);
+      final tokyo = ZoneClock.resolve(zone.ianaId, scheduled);
+      final scheduledLabel = formatClock(tokyo.local, includeSeconds: false);
+      expect(scheduledLabel, isNot(liveLabel));
+      expect(_zoneText(scheduledLabel), findsOneWidget);
+      expect(_zoneText(liveLabel), findsNothing);
+      expect(_zoneText(formatDateLine(tokyo.local)), findsOneWidget);
+      expect(_zoneText(businessHoursLabel(tokyo.local)), findsOneWidget);
+      expect(find.text('Saved places show 3:30 PM today.'), findsOneWidget);
+      expect(find.text('8:15 AM'), findsOneWidget);
+      expect(find.textContaining(RegExp(r'\d:\d{2}:\d{2}')), findsNothing);
+      if (tokyo.local.year != now.year ||
+          tokyo.local.month != now.month ||
+          tokyo.local.day != now.day) {
+        expect(_zoneText(formatDateLine(now)), findsNothing);
+      }
+
+      await tester.tap(toggle);
+      await tester.pump();
+
+      expect(tester.widget<Checkbox>(toggle).value, isFalse);
+      expect(_zoneText(liveLabel), findsOneWidget);
+      expect(_zoneText(scheduledLabel), findsNothing);
+      expect(find.byKey(const Key('check-schedule-hour')), findsNothing);
+      expect(find.text('Saved places show 3:30 PM today.'), findsNothing);
+
+      await tester.tap(toggle);
+      await tester.pump();
+      expect(tester.widget<Checkbox>(toggle).value, isTrue);
+      expect(
+        tester
+            .widget<TextField>(find.byKey(const Key('check-schedule-hour')))
+            .controller
+            ?.text,
+        isEmpty,
+      );
+      expect(_zoneText(liveLabel), findsOneWidget);
+      expect(_zoneText(scheduledLabel), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+}
+
+Finder _zoneText(String text) {
+  return find.descendant(of: find.byType(ZoneCard), matching: find.text(text));
 }

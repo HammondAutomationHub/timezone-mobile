@@ -18,6 +18,9 @@ class ZoneCard extends StatelessWidget {
   });
 
   final SavedZone zone;
+
+  /// Instant to render in [zone]. Live mode passes the current time. A
+  /// schedule check passes the chosen local time today.
   final DateTime now;
   final VoidCallback onPickColor;
   final VoidCallback onRemove;
@@ -140,10 +143,7 @@ class ZoneCard extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 formatClock(clock.local, includeSeconds: false),
-                style: zoneTextStyle(
-                  color: textColor,
-                  size: metrics.zoneClock,
-                ),
+                style: zoneTextStyle(color: textColor, size: metrics.zoneClock),
               ),
             ),
             const SizedBox(height: 6),
