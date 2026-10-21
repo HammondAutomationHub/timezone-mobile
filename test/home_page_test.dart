@@ -391,9 +391,16 @@ void main() {
       expect(find.text('8:15 AM'), findsWidgets);
       expect(find.text('8:15:00 AM'), findsNothing);
 
+      String fieldText(Key key) {
+        return tester.widget<TextField>(find.byKey(key)).controller?.text ??
+            '';
+      }
+
       await tester.tap(toggle);
       await tester.pump();
       expect(tester.widget<Checkbox>(toggle).value, isTrue);
+      expect(fieldText(const Key('check-schedule-minute')), '00');
+      expect(fieldText(const Key('check-schedule-hour')), isEmpty);
       expect(_zoneText(liveLabel), findsOneWidget);
       expect(
         find.text('Blank keeps the current time in each place.'),
@@ -401,17 +408,14 @@ void main() {
       );
 
       await tester.enterText(find.byKey(const Key('check-schedule-hour')), '3');
-      await tester.enterText(
-        find.byKey(const Key('check-schedule-minute')),
-        '30',
-      );
       await tester.pump();
+      expect(fieldText(const Key('check-schedule-minute')), '00');
       expect(_zoneText(liveLabel), findsOneWidget);
 
       await tester.tap(find.byKey(const Key('check-schedule-pm')));
       await tester.pump();
 
-      final scheduled = localScheduleInstant(now, 15, 30);
+      final scheduled = localScheduleInstant(now, 15, 0);
       final tokyo = ZoneClock.resolve(zone.ianaId, scheduled);
       final scheduledLabel = formatClock(tokyo.local, includeSeconds: false);
       expect(scheduledLabel, isNot(liveLabel));
@@ -419,7 +423,7 @@ void main() {
       expect(_zoneText(liveLabel), findsNothing);
       expect(_zoneText(formatDateLine(tokyo.local)), findsOneWidget);
       expect(_zoneText(businessHoursLabel(tokyo.local)), findsOneWidget);
-      expect(find.text('Saved places show 3:30 PM today.'), findsOneWidget);
+      expect(find.text('Saved places show 3:00 PM today.'), findsOneWidget);
       expect(find.text('8:15 AM'), findsOneWidget);
       expect(find.textContaining(RegExp(r'\d:\d{2}:\d{2}')), findsNothing);
       if (tokyo.local.year != now.year ||
@@ -428,27 +432,37 @@ void main() {
         expect(_zoneText(formatDateLine(now)), findsNothing);
       }
 
+      await tester.enterText(
+        find.byKey(const Key('check-schedule-minute')),
+        '30',
+      );
+      await tester.pump();
+      final moved = localScheduleInstant(now, 15, 30);
+      final movedTokyo = ZoneClock.resolve(zone.ianaId, moved);
+      final movedLabel = formatClock(movedTokyo.local, includeSeconds: false);
+      expect(_zoneText(movedLabel), findsOneWidget);
+      expect(_zoneText(scheduledLabel), findsNothing);
+      expect(find.text('Saved places show 3:30 PM today.'), findsOneWidget);
+
       await tester.tap(toggle);
       await tester.pump();
 
       expect(tester.widget<Checkbox>(toggle).value, isFalse);
       expect(_zoneText(liveLabel), findsOneWidget);
       expect(_zoneText(scheduledLabel), findsNothing);
+      expect(_zoneText(movedLabel), findsNothing);
       expect(find.byKey(const Key('check-schedule-hour')), findsNothing);
+      expect(find.text('Saved places show 3:00 PM today.'), findsNothing);
       expect(find.text('Saved places show 3:30 PM today.'), findsNothing);
 
       await tester.tap(toggle);
       await tester.pump();
       expect(tester.widget<Checkbox>(toggle).value, isTrue);
-      expect(
-        tester
-            .widget<TextField>(find.byKey(const Key('check-schedule-hour')))
-            .controller
-            ?.text,
-        isEmpty,
-      );
+      expect(fieldText(const Key('check-schedule-hour')), isEmpty);
+      expect(fieldText(const Key('check-schedule-minute')), '00');
       expect(_zoneText(liveLabel), findsOneWidget);
       expect(_zoneText(scheduledLabel), findsNothing);
+      expect(_zoneText(movedLabel), findsNothing);
       expect(tester.takeException(), isNull);
     },
   );

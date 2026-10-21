@@ -139,12 +139,18 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _setScheduleEnabled(bool enabled) {
+    if (enabled) {
+      // Minute starts at 00 so only the hour (and AM/PM) need to be chosen.
+      _minute.text = '00';
+    }
     setState(() {
       _scheduleEnabled = enabled;
       if (!enabled) {
         _period = null;
         _schedule = null;
         _scheduleError = null;
+      } else {
+        _applyParsed();
       }
     });
     if (!enabled) {
